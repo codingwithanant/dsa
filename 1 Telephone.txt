@@ -1,0 +1,79 @@
+class Entry:
+    def _init_(self, name, number):
+        self.name = name
+        self.number = number
+
+class HashTable:
+    def _init_(self, size):
+        self.size = size
+        self.table = [None] * size
+        self.filled_slots = 0
+
+    def hash_function_linear(self, key):
+        return sum(ord(c) for c in key) % self.size
+
+    def hash_function_double(self, key):
+        prime = 31
+        hash_value = 0
+        for char in key:
+            hash_value = (hash_value * prime + ord(char)) % self.size
+        return hash_value
+
+    def insert(self, entry):
+        if self.filled_slots == self.size:
+            print("Hash table is full!")
+            return
+        index = self.hash_function_linear(entry.name)
+        while self.table[index] is not None:
+            index = (index + 1) % self.size
+        self.table[index] = entry
+        self.filled_slots += 1
+        print("Entry added successfully.")
+
+    def search(self, name):
+        index = self.hash_function_linear(name)
+        original_index = index
+        while self.table[index] is not None:
+            if self.table[index].name == name:
+                print("Name:", self.table[index].name)
+                print("Number:", self.table[index].number)
+                return
+            index = (index + 1) % self.size
+            if index == original_index:
+                break
+        print("Entry not found.")
+
+    def display_all(self):
+        for entry in self.table:
+            if entry is not None:
+                print("Name:", entry.name)
+                print("Number:", entry.number)
+
+def main():
+    size = int(input("Enter size of hash table: "))
+    hash_table = HashTable(size)
+    while True:
+        print("\n1. Insert")
+        print("2. Search")
+        print("3. Display ")
+        print("4. Exit")
+        choice = int(input("Enter your choice: "))
+        if choice == 1:
+            name = input("Enter name: ")
+            number = input("Enter number: ")
+            entry = Entry(name, number)
+            hash_table.insert(entry)
+        elif choice == 2:
+            name = input("Enter name to search: ")
+            hash_table.search(name)
+        elif choice == 3:
+            print("\nAll Entries:")
+            hash_table.display_all()
+        elif choice == 4:
+            print("Exiting program...")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+if _name_ == "_main_":
+    main()

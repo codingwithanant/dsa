@@ -1,0 +1,182 @@
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+class DictionaryNode {
+public:
+    string keyword;
+    string meaning;
+    DictionaryNode* left;
+    DictionaryNode* right;
+
+    DictionaryNode(const string& key, const string& mean)
+        : keyword(key), meaning(mean), left(nullptr), right(nullptr) {}
+};
+
+class Dictionary {
+private:
+    DictionaryNode* root;
+
+public:
+    Dictionary() : root(nullptr) {}
+
+    void insert(const string& keyword, const string& meaning) {
+        root = insertHelper(root, keyword, meaning);
+    }
+
+    void display() {
+        if (root == nullptr) {
+            cout << "Dictionary is empty." << endl;
+        } else {
+            displayHelper(root);
+        }
+    }
+
+    void remove(const string& keyword) {
+        root = removeHelper(root, keyword);
+    }
+
+    void search(const string& keyword) {
+        DictionaryNode* node = find(root, keyword);
+        if (node != nullptr) {
+            cout << "Meaning of '" << keyword << "': " << node->meaning << endl;
+        } else {
+            cout << "'" << keyword << "' not found in the dictionary." << endl;
+        }
+    }
+
+    void update(const string& keyword, const string& newMeaning) {
+        DictionaryNode* node = find(root, keyword);
+        if (node != nullptr) {
+            node->meaning = newMeaning;
+            cout << "Meaning updated successfully for '" << keyword << "'." << endl;
+        } else {
+            cout << "'" << keyword << "' not found in the dictionary. Update failed." << endl;
+        }
+    }
+
+private:
+    DictionaryNode* insertHelper(DictionaryNode* node, const string& key, const string& mean) {
+        if (node == nullptr) {
+            return new DictionaryNode(key, mean);
+        }
+        if (key < node->keyword) {
+            node->left = insertHelper(node->left, key, mean);
+        } else if (key > node->keyword) {
+            node->right = insertHelper(node->right, key, mean);
+        } else {
+            cout << "Keyword '" << key << "' already exists in the dictionary." << endl;
+        }
+        return node;
+    }
+
+    void displayHelper(DictionaryNode* node) {
+        if (node != nullptr) {
+            displayHelper(node->left);
+            cout << node->keyword << " = " << node->meaning << endl;
+            displayHelper(node->right);
+        }
+    }
+
+    DictionaryNode* removeHelper(DictionaryNode* node, const string& key) {
+        if (node == nullptr) {
+            return nullptr;
+        }
+        if (key < node->keyword) {
+            node->left = removeHelper(node->left, key);
+        } else if (key > node->keyword) {
+            node->right = removeHelper(node->right, key);
+        } else {
+            if (node->left == nullptr) {
+                DictionaryNode* temp = node->right;
+                delete node;
+                return temp;
+            } else if (node->right == nullptr) {
+                DictionaryNode* temp = node->left;
+                delete node;
+                return temp;
+            } else {
+                DictionaryNode* minNode = findMin(node->right);
+                node->keyword = minNode->keyword;
+                node->meaning = minNode->meaning;
+                node->right = removeHelper(node->right, minNode->keyword);
+            }
+        }
+        return node;
+    }
+
+    DictionaryNode* find(DictionaryNode* node, const string& key) {
+        if (node == nullptr || node->keyword == key) {
+            return node;
+        }
+        if (key < node->keyword) {
+            return find(node->left, key);
+        } else {
+            return find(node->right, key);
+        }
+    }
+
+    DictionaryNode* findMin(DictionaryNode* node) {
+        while (node != nullptr && node->left != nullptr) {
+            node = node->left;
+        }
+        return node;
+    }
+};
+
+int main() {
+    Dictionary dict;
+    int choice;
+    string keyword, meaning;
+    do {
+        cout << "\n========== DICTIONARY MENU ==========\n"
+             << "1. Add a new keyword\n"
+             << "2. Display all keywords and meanings\n"
+             << "3. Delete a keyword\n"
+             << "4. Search for a keyword\n"
+             << "5. Update the meaning of a keyword\n"
+             << "6. Exit\n"
+             << "=====================================\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1:
+                cout << "Enter keyword: ";
+                cin >> keyword;
+                cout << "Enter meaning: ";
+                cin.ignore();
+                getline(cin, meaning);
+                dict.insert(keyword, meaning);
+                break;
+            case 2:
+                dict.display();
+                break;
+            case 3:
+                cout << "Enter keyword to delete: ";
+                cin >> keyword;
+                dict.remove(keyword);
+                break;
+            case 4:
+                cout << "Enter keyword to search: ";
+                cin >> keyword;
+                dict.search(keyword);
+                break;
+            case 5:
+                cout << "Enter keyword to update: ";
+                cin >> keyword;
+                cout << "Enter new meaning: ";
+                cin.ignore();
+                getline(cin, meaning);
+                dict.update(keyword, meaning);
+                break;
+            case 6:
+                cout << "Exiting dictionary. Goodbye!\n";
+                break;
+            default:
+                cout << "Invalid choice. Please try again.\n";
+                break;
+        }
+    } while (choice != 6);
+    return 0;
+}

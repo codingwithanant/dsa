@@ -1,0 +1,164 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+
+using namespace std;
+
+struct Student {
+    int roll;
+    string name;
+    char div;
+    string address;
+};
+
+class StudentManager {
+public:
+    void create();
+    void display();
+    void search();
+    void Delete();
+};
+
+void StudentManager::create() {
+    ofstream fout("stud.dat", ios::out | ios::app | ios::binary);
+    if (!fout) {
+        cerr << "Error: Failed to open file for writing!" << endl;
+        return;
+    }
+    char ans;
+    Student rec;
+
+    do {
+        cout << "\nEnter Roll No of Student: ";
+        cin >> rec.roll;
+        cout << "Enter Name of Student: ";
+        cin.ignore();
+        getline(cin, rec.name);
+        cout << "Enter Division of Student: ";
+        cin >> rec.div;
+        cout << "Enter Address of Student: ";
+        cin.ignore();
+        getline(cin, rec.address);
+        fout.write(reinterpret_cast<char*>(&rec), sizeof(Student));
+        cout << "\nDo You Want to Add More Records (y/n): ";
+        cin >> ans;
+    } while (ans == 'y' || ans == 'Y');
+    fout.close();
+}
+
+void StudentManager::display() {
+    ifstream fin("stud.dat", ios::in | ios::binary);
+    if (!fin) {
+        cerr << "Error: Failed to open file for reading!" << endl;
+        return;
+    }
+    Student rec;
+    cout << "\n--- Student Records ---\n";
+    while (fin.read(reinterpret_cast<char*>(&rec), sizeof(Student))) {
+        cout << "\nRoll No: " << rec.roll;
+        cout << "\nName: " << rec.name;
+        cout << "\nDivision: " << rec.div;
+        cout << "\nAddress: " << rec.address << endl;
+    }
+    fin.close();
+}
+
+void StudentManager::search() {
+    ifstream fin("stud.dat", ios::in | ios::binary);
+    if (!fin) {
+        cerr << "Error: Failed to open file for reading!" << endl;
+        return;
+    }
+    int rollNo;
+    cout << "\nEnter Roll No to Search: ";
+    cin >> rollNo;
+    Student rec;
+    bool found = false;
+    while (fin.read(reinterpret_cast<char*>(&rec), sizeof(Student))) {
+        if (rec.roll == rollNo) {
+            cout << "\nRecord Found:";
+            cout << "\nRoll No: " << rec.roll;
+            cout << "\nName: " << rec.name;
+            cout << "\nDivision: " << rec.div;
+            cout << "\nAddress: " << rec.address << endl;
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        cout << "\nRecord not found for Roll No: " << rollNo << endl;
+    }
+    fin.close();
+}
+
+void StudentManager::Delete() {
+    ifstream fin("stud.dat", ios::in | ios::binary);
+    if (!fin) {
+        cerr << "Error: Failed to open file for reading!" << endl;
+        return;
+    }
+    ofstream temp("temp.dat", ios::out | ios::binary);
+    if (!temp) {
+        cerr << "Error: Failed to create temporary file!" << endl;
+        fin.close();
+        return;
+    }
+    int rollNo;
+    cout << "\nEnter Roll No to Delete: ";
+    cin >> rollNo;
+    Student rec;
+    bool found = false;
+    while (fin.read(reinterpret_cast<char*>(&rec), sizeof(Student))) {
+        if (rec.roll == rollNo) {
+            found = true;
+            cout << "\nRecord Deleted:";
+        } else {
+            temp.write(reinterpret_cast<char*>(&rec), sizeof(Student));
+        }
+    }
+    fin.close();
+    temp.close();
+    if (!found) {
+        cout << "\nRecord not found for Roll No: " << rollNo << endl;
+        remove("temp.dat");
+    } else {
+        remove("stud.dat");
+        rename("temp.dat", "stud.dat");
+    }
+}
+
+int main() {
+    StudentManager manager;
+    int choice;
+    do {
+        cout << "\n***** Student Information *****";
+        cout << "\n1. Add Record";
+        cout << "\n2. Display Records";
+        cout << "\n3. Search Record";
+        cout << "\n4. Delete Record";
+        cout << "\n0. Exit";
+        cout << "\nEnter Your Choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1:
+                manager.create();
+                break;
+            case 2:
+                manager.display();
+                break;
+            case 3:
+                manager.search();
+                break;
+            case 4:
+                manager.Delete();
+                break;
+            case 0:
+                cout << "\nExiting...";
+                break;
+            default:
+                cout << "\nInvalid Choice! Please try again.";
+                break;
+        }
+    } while (choice != 0);
+    return 0;
+}
